@@ -105,7 +105,7 @@ class PublicSetupTest(unittest.TestCase):
             nested.mkdir(parents=True)
             self.assertIsNone(find_env_file(nested))
             (checkout / ".env").write_text("PVZ_GAME_EXECUTABLE=own-game.exe")
-            self.assertEqual(find_env_file(nested), checkout / ".env")
+            self.assertEqual(find_env_file(nested), (checkout / ".env").resolve())
 
 if __name__ == "__main__":
     unittest.main()

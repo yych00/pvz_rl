@@ -4,7 +4,6 @@ import winreg
 import tempfile
 from pathlib import Path
 from pvz_gym.runtime.instances import GameInstance
-from pvz_gym.bridge.native import set_process_audio_muted
 
 
 class AudioMuteIsolationTest(unittest.TestCase):
@@ -34,15 +33,6 @@ class AudioMuteIsolationTest(unittest.TestCase):
             instance = GameInstance(Path(os.environ.get("COMSPEC", "cmd.exe")), Path(tmp) / "instances", 0)
             with self.assertRaisesRegex(RuntimeError, "owned instance lease"):
                 instance._apply_zero_volume_registry()
-
-    def test_wasapi_mute_call(self):
-        # 对当前进程调用静音与解除静音，验证 WASAPI native 接口不崩且安全返回
-        pid = os.getpid()
-        ok_mute = set_process_audio_muted(pid, True)
-        self.assertTrue(ok_mute)
-        ok_unmute = set_process_audio_muted(pid, False)
-        self.assertTrue(ok_unmute)
-
 
 if __name__ == "__main__":
     unittest.main()

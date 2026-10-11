@@ -15,12 +15,12 @@
 CUDA 版本应显示 `12.1`，`torch.cuda.is_available()` 应为 `True`。只有安装 CUDA wheel 而驱动/GPU 不可用时，自动设备选择仍会回退到 CPU；训练命令添加 `--device cuda` 可直接报告 GPU 不可用。
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NativeArchive C:/Downloads/pvz-rl-native-0.1.0-windows-x64.zip
+powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NativeArchive C:/Downloads/pvz-rl-native-0.1.1-windows-x64.zip
 ```
 
 归档同目录必须有 `.zip.sha256`，安装器同时检查整体 SHA256、DLL SHA256、包版本、架构和运行时接口。
 
-自动下载从 `origin` 的 GitHub 地址识别仓库，使用与 Python 包版本一致的标签（如 `v0.1.0`）。公开 Release 无需认证；私有 Release 在匿名请求不可访问时，尝试 Git Credential Manager 中已有的 GitHub 登录，也可显式使用环境变量 `GH_TOKEN` / `GITHUB_TOKEN`。登录账号须有仓库访问权限，令牌只在请求时使用，不写入 `.env` 或下载文件，并在跨主机重定向时移除。
+自动下载从 `origin` 的 GitHub 地址识别仓库，使用与 Python 包版本一致的标签（如 `v0.1.1`）。公开 Release 无需认证；私有 Release 在匿名请求不可访问时，尝试 Git Credential Manager 中已有的 GitHub 登录，也可显式使用环境变量 `GH_TOKEN` / `GITHUB_TOKEN`。登录账号须有仓库访问权限，令牌只在请求时使用，不写入 `.env` 或下载文件，并在跨主机重定向时移除。
 
 从网页下载源码 ZIP 时没有 Git remote，需要同时下载对应的 native ZIP 与 `.sha256`，使用上面的 `-NativeArchive` 命令，或从源码构建。尚未发布匹配 Release 时同样使用本地归档或 `-BuildNative`。`-ReleaseBaseUrl` 供自定义公开下载目录使用，不负责私有 GitHub 认证。
 
@@ -45,6 +45,11 @@ ctest --test-dir build/native-x64 -C Release --output-on-failure
 
 `scripts/build_native.bat Win32` 构建额外的 x86 注入代码测试；其 DLL 不用于 64 位 Python。`tests/integration/manual` 的真实游戏测试需显式运行，不进入 CI。
 
+安装 DLL 后，可在启用 Windows 音频服务的机器上显式运行
+`.venv/Scripts/python.exe -m unittest tests.integration.manual.test_audio_mute -v`。
+该项只检查当前 Python 进程的原生 WASAPI 静音调用，不验证游戏声音，依赖真实 DLL
+和系统音频服务，因此不属于离线 unit suite。
+
 ## 实机验收
 
 使用自己的完整兼容游戏目录，先完成 `doctor` 和训练存档准备，再执行：
@@ -58,6 +63,6 @@ ctest --test-dir build/native-x64 -C Release --output-on-failure
 
 ## 发布包
 
-提交审阅后的源码，再运行 `.venv/Scripts/python.exe -m scripts.package_release`。生成 `dist/pvz-rl-native-0.1.0-windows-x64.zip` 和 SHA256 sidecar，包内记录源码 commit。发布必须同时提供该 commit 的完整源码，许可证和第三方说明随 DLL 提供。
+提交审阅后的源码，再运行 `.venv/Scripts/python.exe -m scripts.package_release`。生成 `dist/pvz-rl-native-0.1.1-windows-x64.zip` 和 SHA256 sidecar，包内记录源码 commit。发布必须同时提供该 commit 的完整源码，许可证和第三方说明随 DLL 提供。
 
-GitHub CI 在 Windows 上运行离线检查；推送与包版本一致的 `v0.1.0` 标签才触发 Release workflow。源码归档通过 `git archive` 从已跟踪文件生成，游戏、本地存档、模型和构建数据不进入发布包。
+GitHub CI 在 Windows 上运行离线检查；推送与包版本一致的 `v0.1.1` 标签才触发 Release workflow。源码归档通过 `git archive` 从已跟踪文件生成，游戏、本地存档、模型和构建数据不进入发布包。
