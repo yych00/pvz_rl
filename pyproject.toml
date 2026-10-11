@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pvz-rl"
+version = "0.1.0"
+description = "Real-game Windows PvZ Gym environment and Double DQN training workbench"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = {file = "LICENSE"}
+dependencies = ["numpy>=2.2,<3", "gymnasium==1.3.0"]
+classifiers = ["Operating System :: Microsoft :: Windows", "Programming Language :: Python :: 3"]
+
+[project.optional-dependencies]
+train = ["torch==2.5.1"]
+
+[tool.setuptools]
+package-dir = {pvz_gym = "python/pvz_gym"}
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = [".", "python"]
+include = ["pvz_gym", "pvz_gym.*", "train", "train.*", "workbench", "workbench.*", "agents", "agents.*", "eval", "eval.*", "scripts"]
+exclude = ["tests", "tests.*", "python", "build", "build.*"]
+namespaces = false

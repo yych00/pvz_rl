@@ -1,0 +1,39 @@
+name: Native Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e .
+      - name: Verify tag
+        shell: pwsh
+        run: |
+          $version = (python -c "from importlib.metadata import version; print(version('pvz-rl'))").Trim()
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw "Tag must match package version" }
+      - name: Build and test
+        run: |
+          cmake -S native -B build/native-x64 -A x64
+          cmake --build build/native-x64 --config Release --parallel
+          ctest --test-dir build/native-x64 -C Release --output-on-failure
+          python -m unittest discover -s tests/smoke -t . -v
+      - name: Package
+        shell: pwsh
+        run: |
+          python -m scripts.package_release --dll build/native-x64/out/Release/pvz_gym_native.dll
+          git archive --format=zip --output=dist/pvz-rl-source.zip HEAD
+          $sourceArchive = Get-Item dist/pvz-rl-source.zip
+          $sourceHash = (Get-FileHash $sourceArchive.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sourceHash  $($sourceArchive.Name)" | Set-Content "$($sourceArchive.FullName).sha256" -Encoding ascii
+      - name: Publish matching source and binary
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:GITHUB_REF_NAME (Get-ChildItem dist -File).FullName --verify-tag --title $env:GITHUB_REF_NAME --notes "Windows x64 native DLL, SHA256 and corresponding source. Supply your own supported game."
